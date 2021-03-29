@@ -3,8 +3,10 @@ import numpy as np
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
 import seaborn as sn
-from scipy.io import arff
 from scipy import stats
+
+from bankruptcy_model.utils.data_loading import load_dataset_by_year
+from bankruptcy_model.utils.data_prep import change_class_values_to_binary
 
 
 def data_prep(data):
@@ -27,15 +29,13 @@ def data_normalization(data):
     return normed
 
 
-def plot_corrmatrix(data):
-    corrMatrix = data.corr()
+def plot_corrmatrix(data, year):
+    data = load_dataset_by_year(year)
+    data = change_class_values_to_binary(data)
+    corr_matrix = data.corr()
     plt.figure(figsize=(20,20))
-    sn.heatmap(corrMatrix, cmap='coolwarm')
+    sn.heatmap(corr_matrix, cmap='coolwarm')
     plt.show()
 
 
-data_year5 = arff.loadarff('5year.arff')
-df_5 = pd.DataFrame(data_year5[0])
-df_5.loc[df_5['class'].astype(str).str.contains("0"), 'bankrupt'] = 0
-df_5.loc[df_5['class'].astype(str).str.contains("1"), 'bankrupt'] = 1
-plot_corrmatrix(df_5)
+
