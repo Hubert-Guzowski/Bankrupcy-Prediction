@@ -13,7 +13,7 @@ def load_dataset_by_year(year_number) -> pd.DataFrame:
     return pd.DataFrame(data[0])
 
 
-def combine_datasets_into_one_dataset():
+def combine_datasets_into_one_dataset() -> pd.DataFrame:
     df_1 = load_dataset_by_year(1)
     df_1['year'] = 1
     df_2 = load_dataset_by_year(2)
