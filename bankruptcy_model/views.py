@@ -9,6 +9,6 @@ def dataframe_view(request, year_number):
     return HttpResponse(dataframe.to_html())
 
 
-def pca_view(request):
-    prepare_data_for_pca()
+def pca_view(request, year_number):
+    prepare_data_for_pca(year_number)
     return HttpResponse(200)
