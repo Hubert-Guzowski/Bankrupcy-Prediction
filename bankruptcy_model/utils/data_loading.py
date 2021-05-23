@@ -2,9 +2,25 @@ import os
 
 from scipy.io import arff
 import pandas as pd
+import numpy as np
 
 
 from django.conf import settings
+
+
+def prepare_dataset():
+    file_path = os.path.join(settings.BASE_DIR, 'data', 'dataset.csv')
+    col_names = pd.read_csv(file_path, nrows=0).columns
+    dtype_map = {'class': np.int16, 'bankruptcy_after_years': np.int16}
+    dtype_map.update({col: np.float64 for col in col_names if col not in dtype_map})
+
+    df = pd.read_csv(file_path, dtype=dtype_map)
+    df = df.drop([df.columns[0], df.columns[1], df.columns[2], 'year'], axis=1)
+    df.drop_duplicates(keep=False, inplace=True)
+
+    df.head()
+
+    return df
 
 
 def load_dataset_by_year(year_number) -> pd.DataFrame:
