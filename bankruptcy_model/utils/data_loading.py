@@ -15,10 +15,6 @@ def prepare_dataset():
     dtype_map.update({col: np.float64 for col in col_names if col not in dtype_map})
 
     df = pd.read_csv(file_path, dtype=dtype_map)
-    df = df.drop([df.columns[0], df.columns[1], df.columns[2], 'year'], axis=1)
-    df.drop_duplicates(keep=False, inplace=True)
-
-    df.head()
 
     return df
 

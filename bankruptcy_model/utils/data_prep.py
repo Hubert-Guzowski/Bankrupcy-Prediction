@@ -3,15 +3,14 @@ import pickle
 
 import pandas as pd
 import numpy as np
-from sklearn.impute import SimpleImputer
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.metrics import plot_precision_recall_curve
-# from scikitplot.metrics import plot_precision_recall
+from sklearn.metrics import plot_precision_recall_curve, precision_recall_curve, accuracy_score, f1_score
 import matplotlib.pyplot as plt
 
 from bankruptcy_model.utils.data_loading import load_dataset_by_year
+from sklearn.preprocessing import StandardScaler
 
 
 def change_class_values_to_binary(df):
@@ -22,51 +21,34 @@ def change_class_values_to_binary(df):
     return df
 
 
-def perform_smote(df):
-    # df.dropna(inplace=True)
-    # imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-    # imp_data = imp.fit_transform(df)
-    # imp_data_df = pd.DataFrame(imp_data, index=df.index, columns=df.columns)
-    #
-    # X = imp_data_df[imp_data_df.columns.difference(['bankruptcy_after_years', 'class'])]
-    # Y = imp_data_df['bankruptcy_after_years']
-    #
-    # del imp_data, imp_data_df
-    # gc.collect()
-    #
-    # sm = SMOTE(random_state=111)
-    # X_smote, y_smote = sm.fit_resample(X, Y)
-    df.dropna(inplace=True)
-    all_frs = df[df.columns.difference(['bankruptcy_after_years', 'class'])]  # with NaNs
-    label = df['bankruptcy_after_years']
+def perform_smote_method(df):
+    df = df.drop(['Unnamed: 0'], axis=1)
+    df = df.drop(['Unnamed: 0.1'], axis=1)
+    df = df.drop(['id'], axis=1)
+    df = df.drop(['year'], axis=1)
+    df = df.dropna()
+    X = df.drop(['class', 'bankruptcy_after_years'], axis=1)
+    y_class = df['class']
+    y_years = df['bankruptcy_after_years']
+    scaler = StandardScaler()
+    scaled_features = scaler.fit_transform(X.values)
+    X = pd.DataFrame(scaled_features, index=X.index, columns=X.columns)
 
-    sm = SMOTE(random_state=111)
-    X_smote, y_smote = sm.fit_resample(all_frs, label)
-    return X_smote, y_smote
+    strategy = {0: 19535, 1: 1020, 2: 1200, 3: 1070, 4: 730, 5: 300}
+    sm = SMOTE(random_state=111, sampling_strategy=strategy)
+    X_sm, y_sm = sm.fit_resample(X, y_years)
+
+    return X_sm, y_sm
 
 
-def create_model(df):
-    X_smote, y_smote = perform_smote(df)
-    param_grid = {
-        'max_depth': [3, 5, 7, 10]
-    }
-    CV_rfc = GridSearchCV(estimator=RandomForestClassifier(), param_grid=param_grid, cv=5)
-    CV_rfc.fit(X_smote, y_smote)
-
-    print(CV_rfc.best_params_)
-
-    X_train_smote, X_test_smote, y_train_smote, y_test_smote = train_test_split(X_smote, y_smote, test_size=0.3)
-
-    models = [(RandomForestClassifier(max_depth=10), X_train_smote, y_train_smote,
-               'random_forest_SMOTE_no_nan.pkl')]
-
-    for clr, frs, label, out_dir in models:
-        save_model(clr, frs, label, out_dir)
-
-    test_models = [('random_forest_SMOTE_no_nan.pkl', X_test_smote, y_test_smote, 'Random forest + SMOTE')]
-
-    for in_dir, X_test, y_test, title in test_models:
-        validate(in_dir, X_test, y_test, title)
+def perform_random_forest_model(df):
+    X_sm, y_sm = perform_smote_method(df)
+    X_train, X_test, y_train, y_test = train_test_split(X_sm, y_sm, test_size=0.3)
+    clf = RandomForestClassifier(n_estimators=100)
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("f1:", f1_score(y_test, y_pred, average=None))
 
 
 def save_model(model, frs, label, out_dir):
@@ -75,11 +57,9 @@ def save_model(model, frs, label, out_dir):
 
 
 def validate(in_dir, X_test, y_test, title):
-    pass
-    # model = pickle.load(open(in_dir, 'rb'))
-    # y_probas = model.predict_proba(X_test)
-    # plot_precision_recall_curve(y_test, y_probas,
-    #                             title=str('Precision-recall curve micro-averaged over all classes for ' + title))
-    #
-    # plt.savefig(str(title + '.jpg'))
-    # # plt.show()
+    model = pickle.load(open(in_dir, 'rb'))
+    y_probas = model.predict_proba(X_test)
+    fps, tps, thresholds = precision_recall_curve(y_test, y_probas)
+
+    plt.savefig(str(title + '.jpg'))
+    # plt.show()

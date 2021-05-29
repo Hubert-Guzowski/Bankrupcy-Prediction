@@ -11,7 +11,7 @@ def dataframe_view(request, year_number):
 
 def dataframe_all_view(request, year_number):
     dataframe = data_loading.prepare_dataset()
-    data_prep.create_model(dataframe)
+    data_prep.perform_random_forest_model(dataframe)
     return HttpResponse(200)
 
 
