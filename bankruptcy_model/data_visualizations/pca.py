@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
+from bankruptcy_model.results import analysis_results
 from bankruptcy_model.utils.data_loading import load_dataset_by_year
 from bankruptcy_model.utils.data_prep import change_class_values_to_binary
 
@@ -22,7 +23,7 @@ def prepare_data_for_pca(year):
     pca_bankruptcy = PCA(n_components=2)
     principal_components_bankruptcy = pca_bankruptcy.fit_transform(x_bankruptcy_standardized)
     principal_df_bankruptcy = pd.DataFrame(data=principal_components_bankruptcy,
-                                          columns=['principal component 1', 'principal component 2'])
+                                           columns=['principal component 1', 'principal component 2'])
     df = df.reset_index(drop=True)
     final_df_bankruptcy = pd.concat([principal_df_bankruptcy, df[['bankrupt']]], axis=1)
     fig = plt.figure(figsize=(8, 8))
@@ -42,6 +43,7 @@ def prepare_data_for_pca(year):
     ax.grid()
 
     plt.savefig("pca.png")
+    return analysis_results.FigureAnalysisResult(fig)
 
 
 def remove_outliers(df, out_cols, t=1.5, verbose=True):
@@ -58,5 +60,3 @@ def remove_outliers(df, out_cols, t=1.5, verbose=True):
             print(f" Columns {c} had {n_out} outliers removed")
         new_df = filtered_df
     return new_df
-
-
