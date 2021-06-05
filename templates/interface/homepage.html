@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Bankruptcy prediction{% endblock %}
+{% block content %}
+        <div class="container-xl p-3">
+        <div class="container border p-3">
+            <h3>Wprowadź dane firmy</h3>
+            <form action="/" method="post">
+                <div class="container">
+                    <div class="row">
+                        <div class="col form-group">
+                            <label for="date-from">Data pomiaru</label>
+                            <input type="date" class="form-control" id="date-from" name="date-from">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col form-group">
+                            <label for="social-group">Statystyka 1</label>
+                            <select class="form-control" id="social-group" name="social-group">
+                                <option value="all">(Dowolna)</option>
+                                <option value="politicians">Wzrost</option>
+                                <option value="influencers">Spadek</option>
+                                <option value="oposition">Utrzymanie wartości</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col form-group">
+                            <label for="statistic-type">Rodzaj analizy</label>
+                            <select class="form-control" id="statistic-type" name="statistic-type">
+                                <option value="all">Klasteryzacja</option>
+                                <option value="user-range">PCA</option>
+                                <option value="most-tweet-count">Dendogram</option>
+                                <option value="tweets-per-day-trend">Analiza zdrowia firmy</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="form-accept">Zatwierdź</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="container-xl" id="loading-message">
+        <div class="jumbotron">
+            <h2 style="text-align: center">Obliczenia w trakcie...</h2>
+        </div>
+    </div>
+    <div class="container-fluid">
+        {{ result|safe }}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript" charset="utf8">
+        $(document).ready(() => {
+            let $stats = $('#stats');
+            $stats.toggleClass("table table-striped table-bordered")
+            $('#stats thead').toggleClass("thead-dark")
+            $('#stats thead tr').each(function () {
+                $(this).find('th').eq(0).after('<th>Tweety</th>')
+            })
+            $('#stats tbody tr').each(function () {
+                let $firstCol = $(this).find('th').eq(0)
+                let username = $firstCol.text()
+                $firstCol.html(`<a href="/user-summary/${username}">${username}</a>`)
+                $(this).find('td').eq(0).before(`<td><a href="/user-tweets/${username}">Wyświetl</a></td>`)
+            })
+            $('#loading-message').hide()
+            $('#form-accept').click(() => $('#loading-message').show())
+            let dt = $stats.DataTable({
+                "language": {
+                    "processing": "Przetwarzanie...",
+                    "search": " Wyszukaj dowolną frazę:",
+                    "lengthMenu": "Pokaż _MENU_ pozycji",
+                    "info": "Pozycje od _START_ do _END_ z _TOTAL_ łącznie",
+                    "infoEmpty": "Pozycji 0 z 0 dostępnych",
+                    "infoFiltered": "(filtrowanie spośród _MAX_ dostępnych pozycji)",
+                    "infoPostFix": "",
+                    "loadingRecords": "Wczytywanie...",
+                    "zeroRecords": "Nie znaleziono pasujących pozycji",
+                    "emptyTable": "Brak danych",
+                    "paginate": {
+                        "first": "Pierwsza",
+                        "previous": "Poprzednia",
+                        "next": "Następna",
+                        "last": "Ostatnia"
+                    },
+                    "aria": {
+                        "sortAscending": ": aktywuj, by posortować kolumnę rosnąco",
+                        "sortDescending": ": aktywuj, by posortować kolumnę malejąco"
+                    }
+                }
+            });
+            dt.columns(-1).order("desc").draw()
+        });
+    </script>
+{% endblock %}

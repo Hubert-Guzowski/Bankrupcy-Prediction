@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.shortcuts import render
 
 from bankruptcy_model.data_visualizations.pca import prepare_data_for_pca
 from bankruptcy_model.utils import data_loading, data_prep
@@ -16,5 +17,5 @@ def dataframe_all_view(request, year_number):
 
 
 def pca_view(request, year_number):
-    prepare_data_for_pca(year_number)
-    return HttpResponse(200)
+    results = prepare_data_for_pca(year_number)
+    return render(request, 'model/results.html', {'results': results.render_html()})
