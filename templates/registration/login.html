@@ -1,0 +1,14 @@
+{% extends "raw_base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="container p-3">
+<div class="container border p-3">
+    <h2>Log In</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-secondary">Log In</button>
+    </form>
+</div>
+</div>
+{% endblock %}
